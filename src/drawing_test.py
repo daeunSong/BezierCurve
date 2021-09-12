@@ -61,7 +61,7 @@ def evaluate_bezier(points, n):
 points = np.random.rand(5, 2)
 
 # read way points
-f = open("input/heart_path_c.txt")
+f = open("../input/heart_path_c.txt")
 
 line = list(map(int, f.readline().split(" ")))
 width = line[0]
@@ -72,6 +72,9 @@ waypoints = []
 while True:
   line = f.readline()
   if not line: break
+  if line == 'End\n' : 
+    line = f.readline()
+    if line == '': break
   line = line.split(" ")
   y = float(line[0])# * width
   z = float(line[1].split("\n")[0]) * (-1)# * height 
@@ -95,10 +98,53 @@ plt.figure(figsize=(width/50,height/50))
 plt.xlim([0,1])
 plt.ylim([-1,0])
 plt.plot(px, py, 'b-', linewidth=1)
-plt.plot(x, y, 'ro', markersize=2)
+plt.plot(x, y, 'bo', markersize=2)
 #plt.scatter(x, y, s=5, color='r')
-plt.show()
+
+grad = []
+big = []
+bigg = []
+
+#for i in range(len(waypoints)-1):
+#    gradient = np.linalg.norm(curves[i][1](1) - curves[i][1](0))
+#    print(gradient)
+#    grad.append(gradient)
+#    if (gradient > 0.01):
+#        big.append(waypoints[i])
+
+#big = np.array(big)
+#plt.plot(big[:,0], big[:,1], 'ro', markersize=2)
 
 for i in range(len(waypoints)-1):
-    print(curves[i][2](1))
+    gradient = np.array(curves[i][1](0))
+    vec = waypoints[i] + gradient
+    vec2 = np.array([waypoints[i], vec])
+    #plt.plot(vec2[:,0], vec2[:,1], 'r-', linewidth=1)
+    gradient = np.array(curves[i][2](0))
+    vec = waypoints[i] + gradient
+    vec2 = np.array([waypoints[i], vec])
+#    if (np.linalg.norm(gradient)>0.03):
+#        plt.plot(vec2[:,0], vec2[:,1], 'g-', linewidth=1)
 
+
+for i in range(len(waypoints)-1):
+    u1 = np.array(curves[i][1](0))
+    u2 = np.array(curves[i][1](1))
+    cos1 = np.dot(u1,u2)/(np.linalg.norm(u1)*np.linalg.norm(u2))
+#    u1 = np.array(curves[i][1](0))
+#    u2 = np.array(curves[i][1](1))
+#    cos2 = np.dot(u1,u2)/(np.linalg.norm(u1)*np.linalg.norm(u2))
+    #print(cos2)
+    if (cos1 < 0):
+        big.append(waypoints[i+1])
+#    if (cos2 > 0):
+#        bigg.append(waypoints[i+1])
+
+big = np.array(big)
+#plt.plot(big[:,0], big[:,1], 'ro', markersize=2)
+
+#bigg = np.array(bigg)
+#plt.plot(bigg[:,0], bigg[:,1], 'go', markersize=2)
+
+
+plt.show()
