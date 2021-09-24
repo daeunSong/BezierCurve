@@ -15,6 +15,7 @@ class Curves:
 
         # n - 1 curves
         self.curves = np.array([BezierCurve(self.A[i], self.B[i], self.T[i]) for i in range(self.num_curves)])
+        self.total_length = sum(curve.length for curve in self.curves)
 
     def reset_bezeir (self):
         self.T = self.get_bezier_cubic()
@@ -74,6 +75,7 @@ class BezierCurve:
 
         self.tp = self.get_first_deriv(self.Pi, self.A, self.B, self.Pi_1)
         self.tpp = self.get_second_deriv(self.Pi, self.A, self.B, self.Pi_1)
+        self.length = self.get_curve_length()
 
     # returns the first derivative
     def get_first_deriv(self, a, b, c, d):
@@ -83,6 +85,33 @@ class BezierCurve:
     def get_second_deriv(self, a, b, c, d):
         return lambda t: 6 * (1 - t) * a + 6 * (3*t - 2) * b + 6 * (1 - 3*t) * c + 6 * t * d
 
+    # Add 100 points along the curve and measure each segmentation length
+    # Approximation for measure the arc length
+    def get_curve_length(self, n = 101):
+        pt1 = self.t(0)
+        len = 0
+        for t in np.linspace(0, 1, n):
+            pt2 = self.t(t)
+            seg_len = np.linalg.norm(pt2 - pt1)
+            pt1 = pt2
+            len += seg_len
+        return len
+
+    def parameterized (self, u, n = 1001):
+        if u == 1 : return self.t(1)
+        target_len = u * self.length
+        pt1 = self.t(0)
+        len = 0
+        for i in np.linspace(0, 1, n):
+            pt2 = self.t(i)
+            seg_len = np.linalg.norm(pt2 - pt1)
+            len += seg_len
+            if target_len == len : return self.t(i)
+            elif target_len < len: # interpolate
+                diff = len - target_len
+                return pt2 - (diff * (pt2-pt1))/seg_len
+            pt1 = pt2
+        return self.t(u)
 
 if __name__ == '__main__':
     # generate 5 (or any number that you want) random points that we want to fit (or set them youreself)
@@ -94,8 +123,15 @@ if __name__ == '__main__':
     waypoints, width, height = read_waypoints_from_file(file_name)
     # c = Curves(waypoints)
     # plot_bezier(c, width/50, height/50)
-    c = Curves(waypoints[:500])
+    c = Curves(waypoints[:15])
+    # plot_bezier(c)
+
+    from plot_bezier import parameterize_bezier, write_file
+    waypoints = parameterize_bezier(c)
+    c = Curves(waypoints)
     plot_bezier(c)
+
+    # write_file(waypoints)
 
 
     # ## control point vector가 너무 작으면 scale up하여 곡률을 조정한다.
