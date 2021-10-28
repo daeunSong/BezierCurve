@@ -66,15 +66,15 @@ class BezierCurve:
     """
     def __init__(self, A, B, T):
         self.nd = A.shape[0]
-        self.Pi = T(0) # waypoint i
-        self.A = A
-        self.B = B
-        self.Pi_1 = T(1) # waypoints i+1
-        self.control_points = [self.Pi, self.A, self.B, self.Pi_1]
+        self.p0 = T(0) # waypoint i
+        self.p1 = A
+        self.p2 = B
+        self.p3 = T(1) # waypoints i+1
+        self.control_points = [self.p0, self.p1, self.p2, self.p3]
         self.t = T
 
-        self.tp = self.get_first_deriv(self.Pi, self.A, self.B, self.Pi_1)
-        self.tpp = self.get_second_deriv(self.Pi, self.A, self.B, self.Pi_1)
+        self.tp = self.get_first_deriv(self.p0, self.p1, self.p2, self.p3)
+        self.tpp = self.get_second_deriv(self.p0, self.p1, self.p2, self.p3)
         self.length = self.get_curve_length()
 
     # returns the first derivative
@@ -116,22 +116,13 @@ class BezierCurve:
 if __name__ == '__main__':
     # generate 5 (or any number that you want) random points that we want to fit (or set them youreself)
     # waypoints = np.random.rand(5, 2)
-    from read_file import read_waypoints_from_file
-    from plot_bezier import plot_bezier
+    from tools.read_file import read_waypoints_from_file
+    from tools.plot_curve import plot_curve
 
-    file_name = "../input/heart_path_c.txt"
-    waypoints, width, height = read_waypoints_from_file(file_name)
-    # c = Curves(waypoints)
-    # plot_bezier(c, width/50, height/50)
-    c = Curves(waypoints[:15])
-    # plot_bezier(c)
-
-    from plot_bezier import parameterize_bezier, write_file
-    waypoints = parameterize_bezier(c)
+    file_name = "input/heart_c.txt"
+    waypoints = read_waypoints_from_file(file_name)
     c = Curves(waypoints)
-    plot_bezier(c)
-
-    # write_file(waypoints)
+    plot_curve(c)
 
 
     # ## control point vector가 너무 작으면 scale up하여 곡률을 조정한다.

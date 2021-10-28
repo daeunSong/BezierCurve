@@ -51,11 +51,11 @@ def update(num, px, py, line):
     line.set_data(px[:num], py[:num])
     return line,
 
-def plot_bezier(c, width = 0, height = 0, plot_details=True, animation=True, save = False):
+def plot_curve(c, width = 0, height = 0, plot_details=False, animation=False, save = False):
     path = evaluate_bezier(c.T)
-    path_ = parameterize_bezier(c)
+    # path_ = parameterize_bezier(c)
     # print(len(path), len(path_))
-    path = path_
+    # path = path_
     waypoints = c.waypoints
 
     # from bezier_curve import Curves
@@ -72,12 +72,6 @@ def plot_bezier(c, width = 0, height = 0, plot_details=True, animation=True, sav
         fig = plt.figure(figsize=(width,height))
     else: fig = plt.figure(figsize=(10,8))
 
-    # plt.xlim([0,1])
-    # plt.ylim([-1,0])
-    # plt.xlim([0.2,0.7])
-    # plt.ylim([-0.85,-0.5])
-    plt.xlim([120,170])
-    plt.ylim([150,200])
 
     # vel = evaluate_vel(c)
     # print(vel)
@@ -99,22 +93,23 @@ def plot_bezier(c, width = 0, height = 0, plot_details=True, animation=True, sav
 
     # plot_threshold(c)
     if animation & save : ani.save('animation.gif', fps=50)
+    plt.autoscale()
     plt.show()
 
 def plot_control_points(c):
-    x, y = c.A[:,0], c.A[:,1]
+    x, y = c.p1[:,0], c.p1[:,1]
     plt.plot(x, y, 'go', markersize=2)
-    x, y = c.B[:,0], c.B[:,1]
+    x, y = c.p2[:,0], c.p2[:,1]
     plt.plot(x, y, 'go', markersize=2)
 
 def plot_control_vector(c):
     for curve in c.curves:
-        px1, py1 = curve.Pi
-        px2, py2 = curve.A
+        px1, py1 = curve.p0
+        px2, py2 = curve.p1
         plt.plot([px1,px2], [py1,py2], 'g-', linewidth=1)
 
-        px1, py1 = curve.B
-        px2, py2 = curve.Pi_1
+        px1, py1 = curve.p2
+        px2, py2 = curve.p3
         plt.plot([px1,px2], [py1,py2], 'g-', linewidth=1)
 
 def plot_threshold(c):
@@ -166,7 +161,7 @@ if __name__ == '__main__':
     # generate 5 (or any number that you want) random points that we want to fit (or set them youreself)
     waypoints = np.random.rand(5, 2)
 
-    from bezier_curve import Curves
+    from bezier import Curves
     c = Curves(waypoints)
     plot_bezier(c)
     plt.show()
