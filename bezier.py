@@ -2,7 +2,8 @@ import numpy as np
 
 class Curves:
     """
-    Define a cubic Bezier curve interpolation
+    Define a cubic Bezier curve interpolation - composed of n-1
+    cubic Bezier curves that pass given n waypoints.
     """
     def __init__(self, waypoints):
         self.nd = waypoints.shape[1]
@@ -69,7 +70,7 @@ class BezierCurve:
         self.p0 = T(0) # waypoint i
         self.p1 = A
         self.p2 = B
-        self.p3 = T(1) # waypoints i+1
+        self.p3 = T(1) # waypoint i+1
         self.control_points = [self.p0, self.p1, self.p2, self.p3]
         self.t = T
 

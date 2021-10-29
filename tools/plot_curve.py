@@ -24,7 +24,7 @@ def write_file (points, file_name="heart_c_par_fixed2.txt"):
     f.close()
 
 # evalute each cubic curve on the range [0, 1] sliced in n points
-def evaluate_bezier(T, n = 30):
+def evaluate_bezier(T, n = 20):
     return np.array([fun(t) for fun in T for t in np.linspace(0, 1, n)])
 
 def parameterize_bezier (c, n = 10):
@@ -40,19 +40,20 @@ def evaluate_vel(c,n = 20):
     vel = []
     for curve in c.curves:
         for t in range(n):
-            vel.append(np.linalg.norm(curve.tp(t)))
+            vel.append(np.linalg.norm(curve.tp(t/n)))
 
     # normalize to [0,1]
-    vel = np.array(vel)
-    vel = (vel - vel.min()) / (vel.max() - vel.min())
+    # vel = np.array(vel)
+    # vel = (vel - vel.min()) / (vel.max() - vel.min())
     return vel
 
 def update(num, px, py, line):
     line.set_data(px[:num], py[:num])
     return line,
 
-def plot_curve(c, width = 0, height = 0, plot_details=False, animation=False, save = False):
+def plot_curve(c, width = 0, height = 0, plot_details=False, animation=True, save = False):
     path = evaluate_bezier(c.T)
+    vels = evaluate_vel(c)
     # path_ = parameterize_bezier(c)
     # print(len(path), len(path_))
     # path = path_
@@ -80,10 +81,12 @@ def plot_curve(c, width = 0, height = 0, plot_details=False, animation=False, sa
 
     if animation:
         line,= plt.axes().plot(px, py)
-        ani = FuncAnimation(fig, update, frames=len(px), fargs=(px, py, line),interval=1, repeat= not save)
+        ani = FuncAnimation(fig, update, frames=len(px), fargs=(px, py, line),interval=0.01, repeat= not save)
 
     else :
-        plt.plot(px, py, 'b-', linewidth=1)
+        plt.scatter(px, py, s=1, c=vels)
+        plt.viridis()
+        plt.colorbar()
         if plot_details:
             plot_control_points(c)
             plot_control_vector(c)
@@ -163,7 +166,7 @@ if __name__ == '__main__':
 
     from bezier import Curves
     c = Curves(waypoints)
-    plot_bezier(c)
+    plot_curve(c)
     plt.show()
 
 
