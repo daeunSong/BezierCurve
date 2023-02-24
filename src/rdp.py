@@ -1,7 +1,9 @@
 import numpy as np
 from read_file import read_waypoints_from_file
+from scipy.optimize import minimize
 
-EPSILON = 1.0
+EPSILON_d = 0.5
+EPSILON_k = 2.0
 
 def perpendicularDist (point, line):
     p1, p2 = line
@@ -28,7 +30,7 @@ def douglasPeucker (points):
             max_dist = d
     result = []
     # if max dist is greater than epsilon, recursively simplify
-    if max_dist > EPSILON :
+    if max_dist > EPSILON_d :
         # recursive call
         result1 = douglasPeucker(points[:index+1])
         result2 = douglasPeucker(points[index:])
@@ -38,6 +40,13 @@ def douglasPeucker (points):
 
     return result
 
+def obj (s):
+    return s
+def const (s, A, B, P_1):
+    d = np.absolute(np.cross(P_1 - A, P_1 - B)/np.linalg.norm(P_1 - B))
+    c = np.linalg.norm((B - P_1)*s)
+    kappa = (2*d)/(3*c**2)
+    return EPSILON_k - kappa
 
 if __name__ == '__main__':
     file_name = "../input/heart_path_c.txt"
@@ -51,7 +60,7 @@ if __name__ == '__main__':
     # c = Curves(waypoints[:test_num])
     # plot_bezier(c, plot_details=True)
     c = Curves(np.array(result))
-    plot_bezier(c, plot_details=True)
+    # plot_bezier(c, plot_details=True)
     #
     # from plot_bezier import parameterize_bezier
     # # waypoints = parameterize_bezier(c)
@@ -62,27 +71,28 @@ if __name__ == '__main__':
     # # plot_bezier(c)
     #
     #
-    # ## if the control point vector is too small - scale up
-    # scale = 2.0
-    # A = []; B = []
-    # A.append(c.curves[0].A)
-    # for i in range(c.num_curves -1):
-    #     curve_i = c.curves[i]
-    #     curve_i1 = c.curves[i+1]
-    #     vec = np.linalg.norm(curve_i.B - curve_i.Pi_1)
-    #     # print(vec)
-    #     if (vec < 0.8):
-    #         curve_i.B = (curve_i.B - curve_i.Pi_1) * scale + curve_i.Pi_1
-    #         B.append(curve_i.B)
-    #         curve_i1.A = (curve_i1.A - curve_i1.Pi) * scale + curve_i1.Pi
-    #         A.append(curve_i1.A)
-    #     else :
-    #         A.append(curve_i1.A)
-    #         B.append(curve_i.B)
-    # B.append(c.curves[-1].B)
-    #
-    # c.A = np.array(A)
-    # c.B = np.array(B)
-    # c.reset_bezeir()
-    #
-    # plot_bezier(c, plot_details=True)
+    ## if the control point vector is too small - scale up
+    A = []; B = []
+    A.append(c.curves[0].A)
+    for i in range(c.num_curves -1):
+        curve_i = c.curves[i]
+        curve_i1 = c.curves[i+1]
+        kappa = c.curves[i].get_curvature_at_the_end()
+        if (kappa > EPSILON_k):
+            scale = minimize(obj, 1.0, tol=1e-8, bounds=(), constraints={'type':'ineq', 'fun': const, 'args': (curve_i.A, curve_i.B, curve_i.Pi_1)})
+            print(scale.x[0])
+            scale = scale.x[0]
+            curve_i.B = (curve_i.B - curve_i.Pi_1) * scale + curve_i.Pi_1
+            B.append(curve_i.B)
+            curve_i1.A = (curve_i1.A - curve_i1.Pi) * scale + curve_i1.Pi
+            A.append(curve_i1.A)
+        else :
+            A.append(curve_i1.A)
+            B.append(curve_i.B)
+    B.append(c.curves[-1].B)
+
+    c.A = np.array(A)
+    c.B = np.array(B)
+    c.reset_bezeir()
+
+    plot_bezier(c, plot_details=True)

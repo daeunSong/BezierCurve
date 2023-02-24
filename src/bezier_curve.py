@@ -97,6 +97,34 @@ class BezierCurve:
             len += seg_len
         return len
 
+    # def perpendicularDist (self, point, line):
+    #     p1, p2 = line
+    #     # line
+    #     a = p2[1] - p1[1]
+    #     b = - (p2[0] - p1[0])
+    #     c = p1[1]*(p2[0]-p1[0]) + p1[0]*(p1[1]-p2[1])
+    #     # point
+    #     m,n = point
+    #     # dist
+    #     d = np.abs(a*m + b*n + c)/np.sqrt(np.power(a,2)+np.power(b,2))
+    #     return d
+    def get_curvature_at_the_end(self):
+        "Simplified version"
+        d = np.absolute(np.cross(self.control_points[3]-self.control_points[1], self.control_points[3]-self.control_points[2]))
+        c = np.linalg.norm(self.control_points[3]-self.control_points[2])
+        try:
+            kappa = (2*d)/(3*c**3)
+        except ZeroDivisionError:
+            kappa = 0
+        return kappa
+    def get_curvature(self, t):
+        d = self.tp(t)
+        dd = self.tpp(t)
+        numerator = np.linalg.norm(d[0]*dd[1] - dd[0]*d[1])
+        denominator = np.power(d[0]*d[0]+d[1]*d[1],3/2)
+        kappa = numerator / denominator
+        return kappa
+
     def parameterized (self, u, n = 1001):
         if u == 1 : return self.t(1)
         target_len = u * self.length
@@ -123,12 +151,12 @@ if __name__ == '__main__':
     waypoints, width, height = read_waypoints_from_file(file_name)
     # c = Curves(waypoints)
     # plot_bezier(c, width/50, height/50)
-    c = Curves(waypoints[:15])
+    c = Curves(waypoints[:100])
     # plot_bezier(c)
 
     from plot_bezier import parameterize_bezier, write_file
-    waypoints = parameterize_bezier(c)
-    c = Curves(waypoints)
+    # waypoints = parameterize_bezier(c)
+    # c = Curves(waypoints)
     plot_bezier(c)
 
     # write_file(waypoints)
